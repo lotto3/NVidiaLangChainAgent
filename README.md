@@ -1,4 +1,6 @@
 # NVidiaLangChainAgent
+all files might have 'REDACTED' in places where personal information existed.
+you will need to replace them accordingly.
 This actually runs in a jupyter notebook inside jupyter lab.
 there are 2 history files since I had a terminal open with 2 tabs
 the second tab history2.out is where I installed Jupyter and launched it
