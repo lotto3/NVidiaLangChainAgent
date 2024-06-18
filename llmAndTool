@@ -1,0 +1,143 @@
+# basic chatbot using NVIDIA mixtral-8x7b-instruct-v0.1
+
+import getpass
+import os
+import sys
+from langchain_core.output_parsers import StrOutputParser
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnablePassthrough
+from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain.agents import initialize_agent
+from langchain.tools.base import BaseTool
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.prebuilt import create_react_agent
+from langchain import hub
+from langchain.agents import AgentExecutor
+from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings, ChatNVIDIA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+
+
+store = {}
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+
+os.environ["LANGCHAIN_API_KEY"] = "REDACTED"
+os.environ["NVIDIA_API_KEY"] = "REDACTED"
+    
+## Core LC Chat Interface
+model = ChatNVIDIA(model="mistralai/mixtral-8x7b-instruct-v0.1")
+# result = llm.invoke("Write a ballad about LangChain.")
+# print(result.content)
+
+config = {"configurable": {"session_id": "REDACTED"}}
+
+def get_session_history(session_id: str) -> BaseChatMessageHistory:
+    if session_id not in store:
+        store[session_id] = ChatMessageHistory()
+    return store[session_id]
+
+
+# initialize conversational memory
+conversational_memory = ConversationBufferWindowMemory(
+        memory_key='chat_history',
+        k=20,
+        return_messages=True
+)
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a helpful assistant. Answer all questions to the best of your ability.you can use the NL4132 tool to start a netlogo instance.",
+        ),
+        MessagesPlaceholder(variable_name="messages"),
+    ]
+)
+
+
+
+def filter_messages(messages, k=20):
+    return messages[-k:]
+
+
+chain = (
+    RunnablePassthrough.assign(messages=lambda x: filter_messages(x["messages"]))
+    | prompt
+    | model
+)
+
+
+
+with_message_history = RunnableWithMessageHistory(
+    chain,
+    get_session_history,
+    input_messages_key="messages",
+)
+
+
+# create and initialize a LangChain agent.
+class NL4132(BaseTool):
+    name = "NL4132"
+    description = "use this tool when you are asked to run NetLogo."
+
+    def _arun(self, prompt : str):
+        raise NotImplementedError("This tool does not support async")
+        
+    def _run(self, query: str) -> str:
+        return self.remote_request(query)
+
+    def remote_request(self, query: str) -> str:
+        m = str(query)
+        n = len(query)
+        if n == 1:
+            return("must have arguments")
+        else:
+            if m == "sheep":
+                os.system('/home/REDACTED/NetLogo-6.4.0-64/bin/NetLogo "/home/REDACTED/NetLogo-6.4.0-64/models/Sample Models/Biology/Wolf Sheep Predation.nlogo"')
+            elif m == "rabbits":
+                cmd = "/home/REDACTED/NetLogo-6.4.0-64/bin/NetLogo /home/REDACTED/NetLogo-6.4.0-64/models/Sample\\ Models/Biology/Rabbits\\ Grass\\ Weeds.nlogo"
+                os.system(cmd)
+            else:
+                os.system('/home/REDACTED/NetLogo-6.4.0-64/bin/NetLogo')
+        return("Happy to be of service.")
+
+
+# instructions = """You are an agent designed to write and execute python code to answer questions.
+# You have access to a python REPL, which you can use to execute python code.
+# If you get an error, debug your code and try again.
+# Only use the output of your code to answer the question. 
+# You might know the answer without running any code, but you should still run the code to get the answer.
+# If it does not seem like you can write code to answer the question, just return "I don't know" as the answer.
+# """
+# base_prompt = hub.pull("langchain-ai/openai-functions-template")
+# prompt = base_prompt.partial(instructions=instructions)
+
+tool = NL4132()
+tools = [tool]
+memory = SqliteSaver.from_conn_string(":memory:")
+chat_model_with_stop = model.bind(stop=["\nObservation"])
+agent = (
+    {
+        "input": lambda x: x["input"],
+        "agent_scratchpad": lambda x: format_log_to_str(x["intermediate_steps"]),
+    }
+    | prompt
+    | chat_model_with_stop
+)
+#agent = create_react_agent(model, tools, prompt)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+
+response = with_message_history.invoke(
+    {"messages": [HumanMessage(content="Hi.")], "language": "English"},
+    config={"configurable": {"session_id": "REDACTED"}}
+)
+response.content
+

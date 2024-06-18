@@ -1,0 +1,15 @@
+# this is from the second tab of a terminal window
+
+  408  mkdir jupyter-env
+  409  cd jupyter-env
+  413  sudo pip install -U jupyterlab
+  417  sudo env/bin/pip install -U jupyterlab
+  422  mkdir /home/REDACTED/jupyter-env/notebooks
+  423  cd jupyter-env/
+  425  jupyter lab --ip 0.0.0.0 --config config.py
+  429  jupyter lab --ip 0.0.0.0 --config config.py
+  432  jupyter lab --ip 0.0.0.0 --config config.py
+  434  jupyter lab --ip 0.0.0.0 --config config.py
+  440  jupyter lab --ip 0.0.0.0 --config config.py
+  441  history |egrep -i jupyter
+

@@ -1,0 +1,8 @@
+# use this to continue conversation started above.
+
+response = with_message_history.invoke(
+    {"messages": [HumanMessage(content="what about agent_executor?")], "language": "English"},
+    config={"configurable": {"session_id": "REDACTED"}},
+)
+
+response.content

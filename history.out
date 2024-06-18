@@ -1,0 +1,37 @@
+# this is from the first tab of a terminal window
+# I use this within a notebook
+# tab 2 has the jupyter installation & launch
+
+   19  which python
+   20  which python3
+   21  python3 --version
+   84  which python
+   85  which python3
+   86  which pip
+   87  which pip3
+   88  python3 --version
+   89  which python3
+   93  python get-pip.py --user
+   94  python -m ensurepip --upgrade
+  101  python -m venv venv
+  102  sudo apt install python3.12-venv
+  103  python -m venv venv
+  105  pip install --upgrade pip
+  106  pip install --extra-index-url https://pypi.chia.net/simple chia-blockchain miniupnpc
+  278  which python
+  279  python --version
+  349  python -m venv ./venv
+  358  pip install langchain_openai
+  360  bin/pip install langchain_openai
+  362  python
+  364  bin/python
+  365  pip install langgraph
+  366  bin/pip install langgraph
+  367  bin/python
+  368  python -m venv ./venv
+  378  bin/pip install langchain_openai
+  379  bin/pip install langgraph
+  382  bin/python
+  390  ls -AG lib64/python3.12/
+  391  ls -AG lib64/python3.12/site-packages/
+  500  history |egrep 'python|pip' >history.out
